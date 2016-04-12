@@ -1,0 +1,14 @@
+apply from: 'gradle/cas.gradle'
+apply plugin: 'groovy'
+
+cas {
+    version '5.0.0-SNAPSHOT'
+}
+
+springBoot {
+    mainClass = 'testme.CasWebApplication'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = 2.12
+}
