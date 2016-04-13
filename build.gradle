@@ -3,6 +3,8 @@ apply plugin: 'groovy'
 
 cas {
     version '5.0.0-SNAPSHOT'
+    // integration 'hazelcast'
+    // support 'ldap', 'gauth'
 }
 
 springBoot {
