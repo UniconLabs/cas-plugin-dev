@@ -2,7 +2,8 @@ package org.apereo.gradle.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-
+import org.jose4j.jwk.JsonWebKey
+import org.jose4j.jwk.OctJwkGenerator
 import org.springframework.boot.gradle.SpringBootPlugin
 
 /**
@@ -45,6 +46,15 @@ class CasPlugin implements Plugin<Project> {
                 project.cas.integration.each {
                     compile("org.jasig.cas:cas-server-integration-${it}:${project.cas.version}")
                 }
+            }
+        }
+
+        project.task('generateKeys') << {
+            println 'Generating keys for CAS'
+            ['tgc.encryption.key': 256, 'tgc.signing.key': 512, 'webflow.encryption.key': 96, 'webflow.signing.key': 512].each { key, size ->
+                def octetKey = OctJwkGenerator.generateJwk(size)
+                def params = octetKey.toParams(JsonWebKey.OutputControlLevel.INCLUDE_SYMMETRIC)
+                println "${key}=${params.get('k')}"
             }
         }
     }
