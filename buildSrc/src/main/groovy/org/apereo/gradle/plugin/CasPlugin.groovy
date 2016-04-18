@@ -66,12 +66,22 @@ class CasPlugin implements Plugin<Project> {
             }
         }
 
-        def generateMD5 = { File f ->
+        def generateFileSignature = { File f ->
             f.withInputStream {
                 new DigestInputStream(it, MessageDigest.getInstance('MD5')).withStream {
                     it.eachByte {}
                     it.messageDigest.digest().encodeHex() as String
                 }
+            }
+        }
+
+        def getCasResources = { File destination ->
+            def resource = project.configurations.compile.find {
+                it.name.matches('cas-server-webapp-.*-resources\\.jar')
+            }
+            project.copy {
+                from project.zipTree(resource)
+                into destination
             }
         }
 
@@ -81,25 +91,15 @@ class CasPlugin implements Plugin<Project> {
             doLast {
                 println "copying resources from CAS"
                 def resourceRoot = project.file('src/main/resources')
-                if (!resourceRoot) {
-                    project.file('src/main/resources').mkdirs()
-                }
-                def resource = project.configurations.compile.find {
-                    it.name.matches('cas-server-webapp-.*-resources\\.jar')
-                }
-                println "found: ${resource}"
-                project.copy {
-                    from project.zipTree(resource)
-                    into temporaryDir
-                }
+                getCasResources temporaryDir
                 project.fileTree(temporaryDir).visit { el ->
                     if (!el.file.isDirectory()) {
-                        println "checking ${el.relativePath} (${generateMD5 el.file})"
-                        if (!project.file("${resourceRoot}/${el.relativePath}").exists() || (generateMD5(el.file) != generateMD5(project.file("${resourceRoot}/${el.relativePath}")))) {
+                        println "checking ${el.relativePath} (${generateFileSignature el.file})"
+                        if (!project.file("${resourceRoot}/${el.relativePath}").exists() || (generateFileSignature(el.file) != generateFileSignature(project.file("${resourceRoot}/${el.relativePath}")))) {
                             project.copy {
                                 from el.file
                                 into project.file("${resourceRoot}/${el.relativePath}").parent
-                                if (project.file("${resourceRoot}/${el.relativePath}").exists() && (generateMD5(el.file) != generateMD5(project.file("${resourceRoot}/${el.relativePath}")))) {
+                                if (project.file("${resourceRoot}/${el.relativePath}").exists() && (generateFileSignature(el.file) != generateFileSignature(project.file("${resourceRoot}/${el.relativePath}")))) {
                                     rename {String fileName ->
                                         "${fileName}.casorig"
                                     }
@@ -116,10 +116,7 @@ class CasPlugin implements Plugin<Project> {
             description = 'remove default resources from tree'
             doLast {
                 println 'cleaning up resources from CAS'
-                project.copy {
-                    from project.zipTree(project.configurations.compile.find { it.name.matches('cas-server-webapp-.*-resources\\.jar')})
-                    into temporaryDir
-                }
+                getCasResources temporaryDir
                 //clean up casorig files
                 project.fileTree('src/main/resources').matching {
                     include '**/*.casorig'
@@ -131,11 +128,12 @@ class CasPlugin implements Plugin<Project> {
                     if (!el.file.isDirectory()) {
                         println "checking ${el.relativePath}"
                         def orig = project.file("${temporaryDir}/${el.relativePath}")
-                        if (orig.exists() && generateMD5(orig) == generateMD5(el.file)) {
+                        if (orig.exists() && generateFileSignature(orig) == generateFileSignature(el.file)) {
                             el.file.delete()
                         }
                     }
                 }
+                // TODO: clean up empty directories
             }
         }
     }
