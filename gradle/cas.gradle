@@ -18,3 +18,10 @@ repositories {
 dependencies {
     compile "com.fasterxml:classmate:1.3.0"
 }
+
+task explodeWar(type: Copy) {
+    group = "build"
+    description = "explode the war"
+    from zipTree(project.war.outputs.files.singleFile)
+    into "${buildDir}/cas"
+}

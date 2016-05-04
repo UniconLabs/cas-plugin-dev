@@ -11,11 +11,6 @@ springBoot {
     mainClass = 'testme.CasWebApplication'
 }
 
-//A helper to produce an exploded war, should one choose to use it
-war.doLast {
-    ant.unzip(src: war.archivePath, dest: "$buildDir/cas")
-}
-
 task wrapper(type: Wrapper) {
     gradleVersion = 2.12
 }
