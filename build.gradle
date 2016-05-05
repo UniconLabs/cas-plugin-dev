@@ -1,14 +1,23 @@
 apply from: 'gradle/cas.gradle'
-apply plugin: 'groovy'
 
 cas {
     version '5.0.0-SNAPSHOT'
-    // integration 'hazelcast'
-    // support 'ldap', 'gauth'
+}
+
+dependencies {
+    providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
+}
+
+bootRun {
+    addResources = true
 }
 
 springBoot {
-    mainClass = 'testme.CasWebApplication'
+    mainClass = 'org.jasig.cas.web.CasWebApplication'
+}
+
+bootRepackage {
+    mainClass = 'org.jasig.cas.web.CasWebApplication'
 }
 
 task wrapper(type: Wrapper) {

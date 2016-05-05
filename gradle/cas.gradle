@@ -1,13 +1,16 @@
 apply plugin: 'war'
+apply plugin: 'groovy'
 apply plugin: org.apereo.gradle.plugin.CasPlugin
 
 buildscript {
     repositories {
+        mavenLocal()
         jcenter()
         maven { url 'http://repo.spring.io/release'}
     }
     dependencies {
         classpath "org.springframework.boot:spring-boot-gradle-plugin:1.3.3.RELEASE"
+        classpath "org.jasig.cas:cas-server-webapp-init:5.0.0-SNAPSHOT"
     }
 }
 
@@ -17,4 +20,12 @@ repositories {
 
 dependencies {
     compile "com.fasterxml:classmate:1.3.0"
+
+}
+
+task explodeWar(type: Copy) {
+    group = "build"
+    description = "explode the war"
+    from zipTree(project.war.outputs.files.singleFile)
+    into "${buildDir}/cas"
 }

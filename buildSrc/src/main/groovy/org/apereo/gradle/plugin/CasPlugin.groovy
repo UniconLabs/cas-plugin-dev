@@ -41,6 +41,7 @@ class CasPlugin implements Plugin<Project> {
             println "CAS support modules: ${project.cas.support}"
             println "CAS integration modules: ${project.cas.integration}"
             project.dependencies {
+                compile("org.jasig.cas:cas-server-webapp-init:${project.cas.version}")
                 compile("org.jasig.cas:cas-server-webapp:${project.cas.version}:resources") {
                     transitive = true
                 }
