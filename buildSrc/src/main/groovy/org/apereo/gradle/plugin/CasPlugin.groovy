@@ -13,9 +13,16 @@ import java.security.MessageDigest
  * CAS Gradle plugin implementing user-friendly DSL for building and deploying Apereo CAS server.
  *
  * @author Jonathan Johnson
+ * @author Dmitriy Kopylenko
  * @since 1.0.0
  */
 class CasPlugin implements Plugin<Project> {
+
+    static final CAS_ORIG_SUFFIX = '.casorig'
+
+    static final RESOURCES_DIR = 'srs/main/resources'
+
+    static final SRC_DIR = 'src'
 
     @Override
     void apply(Project project) {
@@ -59,7 +66,7 @@ class CasPlugin implements Plugin<Project> {
             group = 'CAS'
             description = 'generate keys for CAS. These keys can be added to your application.properties file'
             doLast {
-                println 'Generating keys for CAS'
+                println 'Generating keys for CAS...'
                 ['tgc.encryption.key': 256, 'tgc.signing.key': 512, 'webflow.encryption.key': 96, 'webflow.signing.key': 512].each { key, size ->
                     def octetKey = OctJwkGenerator.generateJwk(size)
                     def params = octetKey.toParams(JsonWebKey.OutputControlLevel.INCLUDE_SYMMETRIC)
@@ -91,8 +98,8 @@ class CasPlugin implements Plugin<Project> {
             group = 'CAS'
             description = 'copy the resources from the CAS distribution'
             doLast {
-                println "copying resources from CAS"
-                def resourceRoot = project.file('src/main/resources')
+                println "copying resources from CAS..."
+                def resourceRoot = project.file(RESOURCES_DIR)
                 getCasResources temporaryDir
                 project.fileTree(temporaryDir).visit { el ->
                     if (!el.file.isDirectory()) {
@@ -103,7 +110,7 @@ class CasPlugin implements Plugin<Project> {
                                 into project.file("${resourceRoot}/${el.relativePath}").parent
                                 if (project.file("${resourceRoot}/${el.relativePath}").exists() && (generateFileSignature(el.file) != generateFileSignature(project.file("${resourceRoot}/${el.relativePath}")))) {
                                     rename {String fileName ->
-                                        "${fileName}.casorig"
+                                        "$fileName$CAS_ORIG_SUFFIX"
                                     }
                                 }
                             }
@@ -117,16 +124,16 @@ class CasPlugin implements Plugin<Project> {
             group = 'CAS'
             description = 'remove default resources from tree'
             doLast {
-                println 'cleaning up resources from CAS'
+                println 'cleaning up resources from CAS...'
                 getCasResources temporaryDir
                 //clean up casorig files
-                project.fileTree('src/main/resources').matching {
-                    include '**/*.casorig'
+                project.fileTree(RESOURCES_DIR).matching {
+                    include "**/*$CAS_ORIG_SUFFIX"
                 }.each {
                     it.delete()
                 }
                 // clean up files that haven't changed
-                project.fileTree('src/main/resources').visit { el ->
+                project.fileTree(RESOURCES_DIR).visit { el ->
                     if (!el.file.isDirectory()) {
                         println "checking ${el.relativePath}"
                         def orig = project.file("${temporaryDir}/${el.relativePath}")
@@ -135,7 +142,25 @@ class CasPlugin implements Plugin<Project> {
                         }
                     }
                 }
-                // TODO: clean up empty directories
+                // Clean up empty sub-directories of src
+                def emptyDirs = []
+                project.fileTree(dir: SRC_DIR).include('**/*').visit {
+                    def File f = it.file
+                    println f
+                    if (f.isDirectory() ) {
+                        def children = project.fileTree(f).filter { it.isFile() }.files
+                        if (children.size() == 0) {
+                            emptyDirs << f
+                        }
+                    }
+                }
+                // reverse so that we do the deepest folders first
+                emptyDirs.reverseEach { it.delete() }
+                //Delete the empty src directory
+                def srcDir = new File(SRC_DIR)
+                if (srcDir.list().size() == 0) {
+                    srcDir.deleteDir()
+                }
             }
         }
     }
