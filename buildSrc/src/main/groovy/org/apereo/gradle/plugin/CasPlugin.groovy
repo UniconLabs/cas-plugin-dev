@@ -2,7 +2,6 @@ package org.apereo.gradle.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.internal.file.archive.ZipFileTree
 import org.jose4j.jwk.JsonWebKey
 import org.jose4j.jwk.OctJwkGenerator
 import org.springframework.boot.gradle.SpringBootPlugin
@@ -11,9 +10,13 @@ import java.security.DigestInputStream
 import java.security.MessageDigest
 
 /**
- * Created by jj on 4/12/16.
+ * CAS Gradle plugin implementing user-friendly DSL for building and deploying Apereo CAS server.
+ *
+ * @author Jonathan Johnson
+ * @since 1.0.0
  */
 class CasPlugin implements Plugin<Project> {
+
     @Override
     void apply(Project project) {
         if (!project.plugins.hasPlugin(SpringBootPlugin)) {
@@ -38,17 +41,16 @@ class CasPlugin implements Plugin<Project> {
 
         project.afterEvaluate {
             println "CAS Version: ${project.cas.version}"
-            println "CAS support modules: ${project.cas.support}"
-            println "CAS integration modules: ${project.cas.integration}"
+            println "CAS features enabled: ${project.cas.features}"
             project.dependencies {
-                compile("org.jasig.cas:cas-server-webapp:${project.cas.version}:resources") {
+                //This dependency contains main Boot CasWebApplication
+                compile("org.apereo.cas:cas-server-webapp-init:${project.cas.version}")
+
+                compile("org.apereo.cas:cas-server-webapp:${project.cas.version}:resources") {
                     transitive = true
                 }
-                project.cas.support.each {
-                    compile("org.jasig.cas:cas-server-support-${it}:${project.cas.version}")
-                }
-                project.cas.integration.each {
-                    compile("org.jasig.cas:cas-server-integration-${it}:${project.cas.version}")
+                project.cas.features.each {
+                    compile("org.apereo.cas:cas-server-support-${it}:${project.cas.version}")
                 }
             }
         }
