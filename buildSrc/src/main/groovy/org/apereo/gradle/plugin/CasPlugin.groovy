@@ -20,7 +20,7 @@ class CasPlugin implements Plugin<Project> {
 
     static final CAS_ORIG_SUFFIX = '.casorig'
 
-    static final RESOURCES_DIR = 'srs/main/resources'
+    static final RESOURCES_DIR = 'src/main/resources'
 
     static final SRC_DIR = 'src'
 
