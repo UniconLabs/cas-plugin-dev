@@ -3,14 +3,13 @@ apply plugin: 'groovy'
 
 cas {
     version '5.0.0-SNAPSHOT'
-    // integration 'hazelcast'
-    // support 'ldap', 'gauth'
+    features 'hazelcast-ticket-registry', 'ldap'
 }
 
 springBoot {
-    mainClass = 'testme.CasWebApplication'
+    mainClass = 'org.apereo.cas.web.CasWebApplication'
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = 2.12
+    gradleVersion = 2.13
 }

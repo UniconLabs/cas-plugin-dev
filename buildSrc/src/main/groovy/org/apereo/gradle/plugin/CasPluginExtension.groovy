@@ -2,8 +2,7 @@ package org.apereo.gradle.plugin
 
 class CasPluginExtension {
     String version
-    Set integration = []
-    Set support = []
+    Set features = []
 
     def cas(Closure c) {
         c.delegate = this
