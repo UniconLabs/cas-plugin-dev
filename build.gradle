@@ -2,7 +2,7 @@ apply from: 'gradle/cas.gradle'
 apply plugin: 'groovy'
 
 cas {
-    version '5.0.0-SNAPSHOT'
+    version '5.0.0.M2'
     features 'hazelcast-ticket-registry', 'ldap'
 }
 
