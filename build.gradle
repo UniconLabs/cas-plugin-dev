@@ -3,7 +3,7 @@ apply plugin: 'groovy'
 
 cas {
     version '5.0.0.M2'
-    features 'hazelcast-ticket-registry', 'ldap'
+    //features 'hazelcast-ticket-registry', 'ldap'
 }
 
 springBoot {
